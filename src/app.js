@@ -140,5 +140,29 @@ app.post("/status", async (req, res) => {
     }
 })
 
+setInterval( async () => {
+    const tenSecondsAgo = Date.now() - 10000
+
+    try {
+        const inactiveParticipants = await db.collection("participants").deleteMany({ lastStatus: { $lt: tenSecondsAgo } })
+        const removedCount = inactiveParticipants.deletedCount
+
+        if (removedCount > 0) {
+            const newMessage = {
+                from: inactiveParticipants.name,
+                to: 'Todos',
+                text: 'sai da sala...',
+                type: 'status',
+                time: dayjs().format("HH:mm:ss")
+            }
+
+            await db.collection("messages").insertOne(newMessage)
+        }
+
+    } catch (err) {
+        return res.status(500).send(err.message)
+    }
+}, 15000)
+
 const PORT = 5000
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`))
