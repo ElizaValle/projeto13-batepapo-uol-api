@@ -97,25 +97,26 @@ app.get("/messages", async (req, res) => {
     const { user } = req.headers
     const limit = parseInt(req.query.limit)
 
-    //if (limit <= 0 || isNaN(limit)) return res.sendStatus(422)
-
     try {
-        if (limit !== undefined || limit !== null) {
-            res.send(await db.collection("messages")
-            .find(
-                { 
-                    $or: [{ from: user }, { to: "Todos" }, { to: user }, { type: "message" }, { type: "private_message" }]
-                })
-            .limit(-limit)
-            .toArray())
-        } else {
-            res.send(await db.collection("messages")
-            .find(
-                { 
-                    $or: [{ from: user }, { to: "Todos" }, { to: user }, { type: "message" }, { type: "private_message" }]
-                })
-            .toArray())
+        //if (limit < 0 || isNaN(limit)) return res.sendStatus(422)
+
+        const returnMessage =  { 
+            $or: [
+                { from: user }, 
+                { to: "Todos" }, 
+                { to: user }, 
+                { type: "message" }, 
+                { type: "private_message" }
+            ]
         }
+
+        //const messages = await db.collection("messages").find(returnMessage).toArray()
+
+        if (!isNaN(limit) && limit > 0) {
+            await db.collection("messages").find(returnMessage).limit(limit).toArray()
+        }
+
+        await db.collection("messages").find(returnMessage).toArray()
         
     } catch (err) {
         return res.status(500).send(err.message)
